@@ -11,13 +11,13 @@ typedef struct {
   size_t len;
 } Slice;
 
-Slice *NewSlice(size_t cap, size_t elem_size);
-int SlicePush(Slice *s, void *elem);
-void SlicePop(Slice *s);
-void SliceRemove(Slice *s, size_t *i);
-void SliceAppend(Slice *s, void *arr);
-int SliceLen(Slice *s);
-void *SliceGet(const Slice *s, size_t i);
-void SlicePrint(Slice *s, void (*printElem)(void *));
-void FreeSlice(Slice *s);
+Slice *SNew(size_t cap, size_t elem_size);
+int SPush(Slice *s, void *elem);
+void SPop(Slice *s);
+void SRemove(Slice *s, size_t *i);
+void SAppend(Slice *s, void *arr);
+size_t SLen(Slice *s);
+void *SGet(const Slice *s, size_t i);
+void SPrint(Slice *s, void (*printElem)(void *));
+void SFree(Slice *s);
 #endif /* SLICE_H */

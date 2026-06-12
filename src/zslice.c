@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-Slice *NewSlice(size_t cap, size_t elem_size) {
+Slice *SNew(size_t cap, size_t elem_size) {
   Slice *s = malloc(sizeof(Slice));
   if (!s) {
     return NULL;
@@ -23,7 +23,7 @@ Slice *NewSlice(size_t cap, size_t elem_size) {
   return s;
 }
 
-int SlicePush(Slice *s, void *elem) {
+int SPush(Slice *s, void *elem) {
   if (s->len == s->cap) {
     printf("ARRAY IS FULLY - REALLOC\n");
     size_t newCap = s->cap * 2;
@@ -49,25 +49,25 @@ int SlicePush(Slice *s, void *elem) {
   s->len++;
   return s->len;
 }
-void SlicePrint(Slice *s, void (*printElem)(void *)) {
+void SPrint(Slice *s, void (*printElem)(void *)) {
   char *byteAssembly = (char *)s->arr;
   for (size_t i = 0; i < s->len; i++) {
     printElem(byteAssembly + i * s->elem_size);
   }
 }
-void *SliceGet(const Slice *s, size_t i) {
+void *SGet(const Slice *s, size_t i) {
   if (i >= s->len)
     return NULL;
   char *byteAssembly = (char *)s->arr;
   return byteAssembly + i * s->elem_size;
 }
 
-void SlicePop(Slice *s) {
+void SPop(Slice *s) {
   if (s->len == 0)
     return;
   s->len--;
 }
-void SliceRemove(Slice *s, size_t *i) {
+void SRemove(Slice *s, size_t *i) {
   if (*i >= s->len)
     return;
   char *byteAssembly = (char *)s->arr;
@@ -78,7 +78,7 @@ void SliceRemove(Slice *s, size_t *i) {
   s->len--;
 }
 
-void FreeSlice(Slice *slice) {
+void SFree(Slice *slice) {
   free(slice->arr);
   free(slice);
 }
@@ -88,24 +88,24 @@ void enreachSlice(Slice *slice) {
   size_t n = sizeof(values) / sizeof(values[0]);
 
   for (size_t i = 0; i < n; i++) {
-    SlicePush(slice, &values[i]);
+    SPush(slice, &values[i]);
   }
 }
 
 int main() {
-  Slice *slice = NewSlice(5, sizeof(int));
+  Slice *slice = SNew(5, sizeof(int));
   printf("ENREACH SLICE\n");
   enreachSlice(slice);
 
-  SlicePrint(slice, printInt);
+  SPrint(slice, printInt);
 
   printf("---------------------\n");
 
   printf("POP SLICE\n");
-  SlicePop(slice);
+  SPop(slice);
 
-  SlicePrint(slice, printInt);
+  SPrint(slice, printInt);
 
-  FreeSlice(slice);
+  SFree(slice);
   return 0;
 }
