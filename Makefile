@@ -1,8 +1,9 @@
-CC      = gcc
-CFLAGS  = -Wall -Wextra -std=c11 -Iinclude
+CC        = gcc
+CFLAGS    = -Wall -Wextra -std=c11 -Iinclude
+FSANITIZE = -fsanitize=address,undefined -g
 
-SRC     = $(wildcard src/*.c)        
-OBJ     = $(SRC:src/%.c=binaries/%.o) 
+SRC     = $(wildcard src/*.c)
+OBJ     = $(SRC:src/%.c=binaries/%.o)
 TARGET  = binaries/zslice
 
 $(TARGET): $(OBJ)
@@ -14,7 +15,11 @@ binaries/%.o: src/%.c
 run: $(TARGET)
 	./$(TARGET)
 
+sanitize:
+	$(CC) $(CFLAGS) $(FSANITIZE) $(SRC) -o $(TARGET)
+	./$(TARGET)
+
 clean:
 	rm -f binaries/*.o $(TARGET)
 
-.PHONY: run clean
+.PHONY: run clean sanitize
