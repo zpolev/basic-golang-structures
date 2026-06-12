@@ -1,4 +1,5 @@
 #include "zslice.h"
+#include "log.h"
 #include "zutils.h"
 #include <_stdio.h>
 #include <stdatomic.h>
@@ -25,10 +26,11 @@ Slice *SNew(size_t cap, size_t elem_size) {
 
 int SPush(Slice *s, void *elem) {
   if (s->len == s->cap) {
-    printf("ARRAY IS FULLY - REALLOC\n");
     size_t newCap = s->cap * 2;
+    LOG(LOG_WARN, "slice is full, reallocating to cap=%zu", newCap);
     void *tmp = realloc(s->arr, newCap * s->elem_size);
     if (!tmp) {
+      LOG(LOG_ERROR, "realloc failed");
       exit(EXIT_FAILURE);
     }
     s->arr = tmp;
@@ -94,14 +96,14 @@ void enreachSlice(Slice *slice) {
 
 int main() {
   Slice *slice = SNew(5, sizeof(int));
-  printf("ENREACH SLICE\n");
+  LOG(LOG_INFO, "enreaching slice");
   enreachSlice(slice);
 
   SPrint(slice, printInt);
 
   printf("---------------------\n");
 
-  printf("POP SLICE\n");
+  LOG(LOG_INFO, "pop slice");
   SPop(slice);
 
   SPrint(slice, printInt);
