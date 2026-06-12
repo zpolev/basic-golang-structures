@@ -1,5 +1,7 @@
 #include "zslice.h"
 #include "zutils.h"
+#include <_stdio.h>
+#include <stdatomic.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,8 +29,7 @@ int SlicePush(Slice *s, void *elem) {
     size_t newCap = s->cap * 2;
     void *tmp = realloc(s->arr, newCap * s->elem_size);
     if (!tmp) {
-      printf("MEMORY ERROR\n");
-      return -1;
+      exit(EXIT_FAILURE);
     }
     s->arr = tmp;
     s->cap = newCap;
@@ -46,7 +47,7 @@ int SlicePush(Slice *s, void *elem) {
   memcpy(byteAssembly + s->len * s->elem_size, elem, s->elem_size);
 
   s->len++;
-  return s->len - 1;
+  return s->len;
 }
 void SlicePrint(Slice *s, void (*printElem)(void *)) {
   char *byteAssembly = (char *)s->arr;
@@ -61,31 +62,50 @@ void *SliceGet(const Slice *s, size_t i) {
   return byteAssembly + i * s->elem_size;
 }
 
+void SlicePop(Slice *s) {
+  if (s->len == 0)
+    return;
+  s->len--;
+}
+void SliceRemove(Slice *s, size_t *i) {
+  if (*i >= s->len)
+    return;
+  char *byteAssembly = (char *)s->arr;
+  for (size_t j = *i; j < s->len - 1; j++) {
+    memcpy(byteAssembly + j * s->elem_size,
+           byteAssembly + (j + 1) * s->elem_size, s->elem_size);
+  }
+  s->len--;
+}
+
 void FreeSlice(Slice *slice) {
   free(slice->arr);
   free(slice);
 }
 
+void enreachSlice(Slice *slice) {
+  int values[] = {1, 2, 3, 4, 5, 6};
+  size_t n = sizeof(values) / sizeof(values[0]);
+
+  for (size_t i = 0; i < n; i++) {
+    SlicePush(slice, &values[i]);
+  }
+}
+
 int main() {
   Slice *slice = NewSlice(5, sizeof(int));
-  int val_1 = 1;
-  int val_2 = 2;
-  int val_3 = 3;
-  int val_4 = 4;
-  int val_5 = 5;
-  int val_6 = 6;
-  int idx_1 = SlicePush(slice, &val_1);
-  int idx_2 = SlicePush(slice, &val_2);
-  int idx_3 = SlicePush(slice, &val_3);
-  int idx_4 = SlicePush(slice, &val_4);
-  int idx_5 = SlicePush(slice, &val_5);
-  int idx_6 = SlicePush(slice, &val_6);
-  printf("idx_1: %d; idx_2: %d; idx_3: %d; idx_4: %d; idx_5: %d; idx_6: %d\n",
-         idx_1, idx_2, idx_3, idx_4, idx_5, idx_6);
+  printf("ENREACH SLICE\n");
+  enreachSlice(slice);
+
   SlicePrint(slice, printInt);
-  int *val = SliceGet(slice, 4);
-  if (val)
-    printf("GETTING VALUE: %d\n", *val);
+
+  printf("---------------------\n");
+
+  printf("POP SLICE\n");
+  SlicePop(slice);
+
+  SlicePrint(slice, printInt);
+
   FreeSlice(slice);
-  return 1;
+  return 0;
 }
