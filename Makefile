@@ -1,25 +1,36 @@
 CC        = gcc
-CFLAGS    = -Wall -Wextra -std=c11 -Iinclude
-FSANITIZE = -fsanitize=address,undefined -g
+CFLAGS    = -Wall -Wextra -Wpedantic -std=c11 -g -Iinclude
+FSANITIZE = -fsanitize=address,undefined
 
-SRC     = $(wildcard src/*.c)
-OBJ     = $(SRC:src/%.c=binaries/%.o)
-TARGET  = binaries/zslice
+SRC      = $(wildcard src/*.c)
+OBJ      = $(SRC:src/%.c=binaries/%.o)
+TARGET   = binaries/zslice
 
-$(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(TARGET)
+LIB_SRC  = $(filter-out src/main.c,$(SRC))   
+TEST_SRC = $(wildcard tests/*.c)
+TEST_BIN = binaries/slice-test
 
-binaries/%.o: src/%.c
+$(TARGET): $(OBJ) | binaries
+	$(CC) $(CFLAGS) $(OBJ) -o $@
+
+binaries/%.o: src/%.c | binaries
 	$(CC) $(CFLAGS) -c $< -o $@
+
+binaries:                 
+	mkdir -p binaries
 
 run: $(TARGET)
 	./$(TARGET)
 
-sanitize:
+sanitize: $(SRC) | binaries
 	$(CC) $(CFLAGS) $(FSANITIZE) $(SRC) -o $(TARGET)
 	./$(TARGET)
 
-clean:
-	rm -f binaries/*.o $(TARGET)
+test: $(TEST_SRC) $(LIB_SRC) | binaries
+	$(CC) $(CFLAGS) $(FSANITIZE) $(TEST_SRC) $(LIB_SRC) -o $(TEST_BIN)
+	./$(TEST_BIN)
 
-.PHONY: run clean sanitize
+clean:
+	rm -f binaries/*.o $(TARGET) $(TEST_BIN)
+
+.PHONY: run clean sanitize test
