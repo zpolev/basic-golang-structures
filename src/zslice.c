@@ -9,6 +9,9 @@
 #include <string.h>
 
 Slice *SNew(size_t cap, size_t elem_size) {
+  if (cap <= 0) {
+    cap = 1;
+  }
   Slice *s = malloc(sizeof(Slice));
   if (!s) {
     return NULL;
@@ -31,12 +34,12 @@ int SPush(Slice *s, void *elem) {
     void *tmp = realloc(s->arr, newCap * s->elem_size);
     if (!tmp) {
       LOG(LOG_ERROR, "realloc failed");
-      exit(EXIT_FAILURE);
+      return -1;
     }
     s->arr = tmp;
     s->cap = newCap;
+    return 0;
   }
-
   // arithmetic of pointers
   // pointer to chars
   // byteAssembly + 1 = + 1 byte
