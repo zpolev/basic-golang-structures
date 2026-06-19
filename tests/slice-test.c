@@ -16,6 +16,11 @@ static int done;
 static int num_tests;
 static int test_passed;
 
+void enreachSlice(Slice *slice) {
+  int values[] = {1, 2, 3, 4, 5, 6};
+  APPEND_ARR(slice, values);
+}
+
 void TestStart(char *name) {
   num_tests++;
   rslt = 1;
