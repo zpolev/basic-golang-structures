@@ -1,7 +1,6 @@
 #include "zslice.h"
 #include "log.h"
 #include "zutils.h"
-#include <_stdio.h>
 #include <stdatomic.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -27,7 +26,7 @@ Slice *SNew(size_t cap, size_t elem_size) {
   return s;
 }
 
-int SPush(Slice *s, void *elem) {
+int SPush(Slice *s, const void *elem) {
   if (s->len == s->cap) {
     size_t newCap = s->cap * 2;
     LOG(LOG_WARN, "slice is full, reallocating to cap=%zu", newCap);
@@ -38,7 +37,6 @@ int SPush(Slice *s, void *elem) {
     }
     s->arr = tmp;
     s->cap = newCap;
-    return 0;
   }
   // arithmetic of pointers
   // pointer to chars
@@ -46,14 +44,13 @@ int SPush(Slice *s, void *elem) {
   // int *byteAssembly = (int *)s->arr
   // byteAssembly + 1 = + 4 byte
   char *byteAssembly = (char *)s->arr;
-
   // void *memcpy(void *dest, const void *src, size_t n)
   // copy n byte form src to dest
   memcpy(byteAssembly + s->len * s->elem_size, elem, s->elem_size);
-
   s->len++;
-  return s->len;
+  return 0; //
 }
+
 void SPrint(Slice *s, void (*printElem)(void *)) {
   char *byteAssembly = (char *)s->arr;
   for (size_t i = 0; i < s->len; i++) {
@@ -90,11 +87,28 @@ void SFree(Slice *slice) {
 
 void enreachSlice(Slice *slice) {
   int values[] = {1, 2, 3, 4, 5, 6};
-  size_t n = sizeof(values) / sizeof(values[0]);
+  APPEND_ARR(slice, values);
+}
 
-  for (size_t i = 0; i < n; i++) {
-    SPush(slice, &values[i]);
+int SAppend(Slice *dst, const Slice *src) {
+  if (dst->elem_size != src->elem_size)
+    return -1;
+  if (SReserve(dst, src->len) == -1)
+    return -1;
+  const char *base = (const char *)src->arr;
+  for (size_t i = 0; i < src->len; i++) {
+    SPush(dst, base + i * src->elem_size);
   }
+  return 0;
+}
+int SAppendArr(Slice *s, const void *arr, size_t lenArr) {
+  if (SReserve(s, lenArr) == -1)
+    return -1;
+  const char *src = (const char *)arr;
+  for (size_t i = 0; i < lenArr; i++) {
+    SPush(s, src + i * s->elem_size);
+  }
+  return 0;
 }
 
 int main() {
